@@ -5,8 +5,7 @@ import asyncio
 import os
 
 URL = 'https://www.holland2stay.com/utrecht.html'
-MAX_RENT = 2000
-CHECK_INTERVAL = 300  # هر 5 دقیقه
+MAX_RENT = 2000  # برای تست
 
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 CHAT_ID = int(os.getenv('CHAT_ID'))
@@ -15,10 +14,14 @@ bot = Bot(token=TELEGRAM_TOKEN)
 sent = set()
 
 async def check_and_alert():
-    global sent
+    print("🔍 در حال بررسی لیست خانه‌ها...")
     response = requests.get(URL)
     soup = BeautifulSoup(response.text, 'html.parser')
     listings = soup.select('.property-list .property')
+
+    print(f"⬅️ تعداد کل موارد پیدا شده: {len(listings)}")
+
+    found = False
 
     for listing in listings:
         title_el = listing.select_one('.property__title')
@@ -42,7 +45,12 @@ async def check_and_alert():
             msg = f"🏠 *{title}*\n💶 {price} €\n🔗 {link}"
             await bot.send_message(chat_id=CHAT_ID, text=msg, parse_mode='Markdown')
             sent.add(link)
-            print(f"✅ پیام ارسال شد برای: {title}")
+            found = True
+            print(f"✅ پیام ارسال شد: {title}")
+
+    if not found:
+        await bot.send_message(chat_id=CHAT_ID, text="ℹ️ بررسی شد: خانه‌ای زیر سقف قیمت پیدا نشد.")
+        print("ℹ️ پیام اطلاع‌رسانی فرستاده شد.")
 
 async def main():
     while True:
@@ -50,7 +58,7 @@ async def main():
             await check_and_alert()
         except Exception as e:
             print("❌ خطا:", e)
-        await asyncio.sleep(CHECK_INTERVAL)
+        await asyncio.sleep(300)
 
 if __name__ == '__main__':
     asyncio.run(main())
