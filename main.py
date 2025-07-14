@@ -5,7 +5,7 @@ import asyncio
 import os
 
 URL = 'https://www.holland2stay.com/utrecht.html'
-MAX_RENT = 900
+MAX_RENT = 3000
 CHECK_INTERVAL = 300  # 5 دقیقه
 
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
